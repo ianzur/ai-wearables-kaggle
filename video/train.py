@@ -5,15 +5,16 @@ from pathlib import Path
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '1' 
 
+import numpy as np
 import pandas as pd
 
 import tensorflow_datasets as tfds 
 import tensorflow as tf
 
-physical_devices = tf.config.list_physical_devices('GPU')
-tf.config.experimental.set_memory_growth(physical_devices[0], True)
+# physical_devices = tf.config.list_physical_devices('GPU')
+# tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
-import ai_wearables_video_gestures.ai_wearables_video_gestures\
+import ai_wearables_video_gestures.ai_wearables_video_gestures
     
 import data_utils
 import decoders
@@ -25,7 +26,6 @@ def main():
     ds = tfds.load(
         "ai_wearables_video_gestures",
         data_dir="./data",
-        # split="train",  # currently there are no pre-defined train/val/test splits
         decoders={"video": tfds.decode.SkipDecoding()},  # skip decoding for now
         # decoders=tfds.decode.PartialDecoding({'video': False, 'label': True, 'frames': True, 'id': True}),
         with_info=False,
@@ -57,18 +57,6 @@ def main():
         test = test.map(lambda ex : (ex["video"], tf.one_hot(ex["label"], depth=6)))
         
     input_shape = (batch, segments, 240, 320, 3)
-    
-    # for item in train:
-    #     # for i in range(10):
-    #     #     ex_id = item['id'][i].numpy().decode("utf-8")
-    #     #     data_utils.create_gif(f"./gifs/{ex_id}.gif", item["video"][i])        
-    #     # print(label_map[ds_info.features["label"].int2str(item["label"][i])])
-    #     # print(item["start"][i], item["end"][i])
-    #     # print(item["filename"][i])
-    #     print(item["video"].shape)
-    #     # print(item)
-    #     # break
-
 
     model = models.ConvLSTM2D_a(input_shape)
     model.build_graph(input_shape)
@@ -77,13 +65,12 @@ def main():
     hist = model.fit(
         train,
         validation_data=val,
-        batch_size=batch,
-        epochs=10,  # max number ( early stopping expected )
+        epochs=50,  # max number ( early stopping expected )
         verbose=1,
         callbacks=[
             ## Early Stop ##
             tf.keras.callbacks.EarlyStopping(
-                monitor="val_accuracy",
+                monitor="val_loss",
                 min_delta=0.001,
                 patience=20,
                 verbose=0,
@@ -94,7 +81,7 @@ def main():
             ## Save checkpoints ##
             tf.keras.callbacks.ModelCheckpoint(
                 Path.cwd() / "ckpt",  # file path/name to save the model
-                monitor="val_accuracy",
+                monitor="val_loss",
                 verbose=0,
                 save_best_only=True,
                 save_weights_only=True,
@@ -104,9 +91,18 @@ def main():
             tf.keras.callbacks.TensorBoard()
         ],
     )
-
-
     
+    res = model.predict(test)
+
+    test = ds["test"]
+    
+    with open('submission.csv', "w") as f:
+        f.write("id,gesture\n")
+
+        for item, r in zip(test, res):
+            f.write(f"{str(item['id'].numpy().decode('utf-8'))},{np.argmax(r)}\n")
+            
+
 if __name__ == "__main__":
     
     main()

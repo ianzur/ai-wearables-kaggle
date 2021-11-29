@@ -23,5 +23,5 @@ class ConvLSTM2D_a(tf.keras.Model):
         
     def build_graph(self, input_shape):
         """use this function to initialize a graph and define the shapes when asking for summary()"""
-        x = tf.keras.Input(shape=(8, 240, 320, 3), name="input")
+        x = tf.keras.Input(shape=input_shape[1:], name="input")
         return tf.keras.Model(inputs=[x], outputs=self.call(x), name=self.name)
