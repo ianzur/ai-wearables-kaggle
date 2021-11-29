@@ -7,7 +7,7 @@ class ConvLSTM2D_a(tf.keras.Model):
     def __init__(self, input_shape):
         super(ConvLSTM2D_a, self).__init__(name="ConvLSTM2D_a")
         
-        self.layer1 = tf.keras.layers.ConvLSTM2D(filters=32, kernel_size=[2,3], strides=(4,4), data_format="channels_last")
+        self.layer1 = tf.keras.layers.ConvLSTM2D(filters=128, kernel_size=[2,3], strides=(4,4), data_format="channels_last")
         self.layer2 = tf.keras.layers.Flatten()
         self.layer3 = tf.keras.layers.Dense(1024)
         self.layer4 = tf.keras.layers.Dense(256)

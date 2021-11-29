@@ -7,7 +7,7 @@ class ConvLSTM1D_a(tf.keras.Model):
     def __init__(self, input_shape):
         super(ConvLSTM1D_a, self).__init__(name="ConvLSTM1D_a")
 
-        self.layer1 = tf.keras.layers.Bidirectional( tf.keras.layers.ConvLSTM1D(64, (3), dropout=0.4) )
+        self.layer1 = tf.keras.layers.Bidirectional( tf.keras.layers.ConvLSTM1D(256, (3), dropout=0.4) )
         self.layer2 = tf.keras.layers.Flatten()
         self.layer3 = tf.keras.layers.Dense(1024, activation="relu")
         self.layer4 = tf.keras.layers.Dropout(0.2)

@@ -54,7 +54,6 @@ def main():
         val = val.map(lambda ex : (ex["video"], tf.one_hot(ex["label"], depth=6)))
         
         test = test.map(functools.partial(decoders.decode_video_segment, num_segments=segments)).batch(batch)
-        test = test.map(lambda ex : (ex["video"], tf.one_hot(ex["label"], depth=6)))
         
     input_shape = (batch, segments, 240, 320, 3)
 
@@ -65,7 +64,7 @@ def main():
     hist = model.fit(
         train,
         validation_data=val,
-        epochs=50,  # max number ( early stopping expected )
+        epochs=100,  # max number ( early stopping expected )
         verbose=1,
         callbacks=[
             ## Early Stop ##
@@ -92,15 +91,14 @@ def main():
         ],
     )
     
-    res = model.predict(test)
-
-    test = ds["test"]
-    
-    with open('submission.csv', "w") as f:
+    with open('submission_video.csv', "w") as f:
         f.write("id,gesture\n")
 
-        for item, r in zip(test, res):
-            f.write(f"{str(item['id'].numpy().decode('utf-8'))},{np.argmax(r)}\n")
+        for batch in test.as_numpy_iterator():
+            results = model.predict(batch["video"])
+            
+            for example, result in zip(batch["id"], results):               
+                f.write(f"{str(example.decode('utf-8'))},{np.argmax(result)}\n")
             
 
 if __name__ == "__main__":

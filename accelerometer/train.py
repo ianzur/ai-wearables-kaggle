@@ -18,6 +18,22 @@ import data_utils
 import models
 
 
+def format(example):
+    
+    xyz = example["xyz"]
+    gesture = example["gesture"]
+    
+    # pad with zeros to max length (51)
+    xyz = tf.expand_dims(tf.pad(xyz, [[0, 51-tf.shape(xyz)[0]], [0,0]]), -1)
+    # one hot encode gesture label (20 classes)
+    gesture = tf.one_hot(gesture, 20)
+    
+    example["xyz"] = xyz
+    example["gesture"] = gesture
+    
+    return example
+
+
 def main():
                   
     ds, ds_info = tfds.load(
@@ -32,12 +48,18 @@ def main():
     
     batch_size = 32
     
+    # create validation set
     train = train_ds.filter(lambda x: tf.math.reduce_any(x["user"] == [0,1,2,3,4]))
     val = train_ds.filter((lambda x: tf.math.reduce_any(x["user"] == [5,6])))
     
-    train = train.map(lambda x: (tf.expand_dims(tf.pad(x["xyz"], [[0, 51-tf.shape(x["xyz"])[0]], [0,0]]), -1), tf.one_hot(x["gesture"], 20))).batch(batch_size)
-    val = val.map(lambda x: (tf.expand_dims(tf.pad(x["xyz"], [[0, 51-tf.shape(x["xyz"])[0]], [0,0]]), -1), tf.one_hot(x["gesture"], 20))).batch(batch_size)
-    test = test_ds.map(lambda x: (tf.expand_dims(tf.pad(x["xyz"], [[0, 51-tf.shape(x["xyz"])[0]], [0,0]]), -1), tf.one_hot(x["gesture"], 20))).batch(batch_size)
+    train = train.map(format).batch(batch_size)
+    train = train.map(lambda x: (x["xyz"], x["gesture"]))
+    
+    val = val.map(format).batch(batch_size)
+    val = val.map(lambda x: (x["xyz"], x["gesture"]))
+
+    # only format data, don't create tuple
+    test = test_ds.map(format).batch(batch_size)
     
     data_shape = (batch_size, 51, 3, 1)
     
@@ -49,46 +71,44 @@ def main():
     model.build_graph(data_shape)
     model.compile(optimizer="Adam", loss="categorical_crossentropy", metrics=["accuracy"])
     
-    with tf.device("CPU"):
-        hist = model.fit(
-            train,
-            validation_data=val,
-            epochs=200,  # max number ( early stopping expected )
-            verbose=1,
-            callbacks=[
-                ## Early Stop ##
-                tf.keras.callbacks.EarlyStopping(
-                    monitor="val_loss",
-                    min_delta=0.01,
-                    patience=20,
-                    verbose=0,
-                    mode="auto",
-                    baseline=None,
-                    restore_best_weights=True,
-                ),
-                ## Save checkpoints ##
-                tf.keras.callbacks.ModelCheckpoint(
-                    Path.cwd() / "ckpt",  # file path/name to save the model
-                    monitor="val_loss",
-                    verbose=0,
-                    save_best_only=True,
-                    save_weights_only=True,
-                    mode="auto",
-                    save_freq="epoch",  # If save_freq is an integer, it will save after n batches (not epochs)
-                ),
-                tf.keras.callbacks.TensorBoard()
-            ],
-        )
-        
-        res = model.predict(test)
+    hist = model.fit(
+        train,
+        validation_data=val,
+        epochs=400,  # max number ( early stopping expected )
+        verbose=1,
+        callbacks=[
+            ## Early Stop ##
+            tf.keras.callbacks.EarlyStopping(
+                monitor="val_loss",
+                min_delta=0.001,
+                patience=20,
+                verbose=0,
+                mode="auto",
+                baseline=None,
+                restore_best_weights=True,
+            ),
+            ## Save checkpoints ##
+            tf.keras.callbacks.ModelCheckpoint(
+                Path.cwd() / "ckpt",  # file path/name to save the model
+                monitor="val_loss",
+                verbose=0,
+                save_best_only=True,
+                save_weights_only=True,
+                mode="auto",
+                save_freq="epoch",  # If save_freq is an integer, it will save after n batches (not epochs)
+            ),
+            tf.keras.callbacks.TensorBoard()
+        ],
+    )
+    
+    with open('submission_accel.csv', "w") as f:
+        f.write("id,gesture\n")
 
-        test = ds["test"]
-        
-        with open('submission_accel.csv', "w") as f:
-            f.write("id,gesture\n")
-
-            for item, r in zip(test, res):
-                f.write(f"{item['id'].numpy()},{np.argmax(r)}\n")    
+        for batch in test.as_numpy_iterator():
+            results = model.predict(batch["xyz"])
+            
+            for example, result in zip(batch["id"], results):               
+                f.write(f"{example},{np.argmax(result)}\n")
         
 
 if __name__ == "__main__":
