@@ -49,7 +49,6 @@ class AiWearablesVideoGestures(tfds.core.GeneratorBasedBuilder):
         """Returns SplitGenerators."""
         # requires manual download
         path = dl_manager.download_kaggle_data("handgesturevideoclassification")
-        # path = Path.cwd() / "data" / "video"
 
         # Returns the Dict[split names, Iterator[Key, Example]]
         return {

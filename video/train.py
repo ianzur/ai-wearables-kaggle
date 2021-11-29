@@ -44,7 +44,7 @@ def main():
     # print(df_val.sort_values("frames").head(10))
     # print(df_test.sort_values("frames").head(10))
     
-    batch = 20
+    batch = 32
     segments = 8
     with tf.device("CPU"):
         train = train.map(functools.partial(decoders.decode_video_segment, num_segments=segments)).batch(batch)
