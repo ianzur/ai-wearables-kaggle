@@ -11,8 +11,21 @@ import pandas as pd
 import tensorflow_datasets as tfds 
 import tensorflow as tf
 
-# physical_devices = tf.config.list_physical_devices('GPU')
-# tf.config.experimental.set_memory_growth(physical_devices[0], True)
+logger = tf.get_logger()
+logger.setLevel(logging.DEBUG)
+
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+
+# create file handler which logs even debug messages
+fh = logging.FileHandler('tensorflow.log')
+fh.setLevel(logging.DEBUG)
+fh.setFormatter(formatter)
+logger.addHandler(fh)
+
+physical_devices = tf.config.list_physical_devices('GPU')
+tf.config.experimental.set_memory_growth(physical_devices[0], True)
+tf.config.optimizer.set_experimental_options({'layout_optimizer': False})
 
 import ai_wearables_video_gestures.ai_wearables_video_gestures
     
@@ -22,7 +35,6 @@ import models
 
 
 def main():
-    
     ds = tfds.load(
         "ai_wearables_video_gestures",
         data_dir="./data",
@@ -44,16 +56,16 @@ def main():
     # print(df_val.sort_values("frames").head(10))
     # print(df_test.sort_values("frames").head(10))
     
-    batch = 32
+    batch = 16
     segments = 8
     with tf.device("CPU"):
-        train = train.map(functools.partial(decoders.decode_video_segment, num_segments=segments)).batch(batch)
+        train = train.map(functools.partial(decoders.decode_video_segment, num_segments=segments)).batch(batch).prefetch(batch)
         train = train.map(lambda ex : (ex["video"], tf.one_hot(ex["label"], depth=6)))
         
-        val = val.map(functools.partial(decoders.decode_video_segment, num_segments=segments)).batch(batch)
+        val = val.map(functools.partial(decoders.decode_video_segment, num_segments=segments)).batch(batch).prefetch(batch)
         val = val.map(lambda ex : (ex["video"], tf.one_hot(ex["label"], depth=6)))
         
-        test = test.map(functools.partial(decoders.decode_video_segment, num_segments=segments)).batch(batch)
+        test = test.map(functools.partial(decoders.decode_video_segment, num_segments=segments)).batch(batch).prefetch(batch)
         
     input_shape = (batch, segments, 240, 320, 3)
 
@@ -61,22 +73,24 @@ def main():
     model.build_graph(input_shape)
     model.compile(optimizer="Adam", loss="categorical_crossentropy", metrics=["accuracy"])
     
+    print(model.build_graph(input_shape).summary(line_length=160))
+    
     hist = model.fit(
         train,
         validation_data=val,
-        epochs=100,  # max number ( early stopping expected )
+        epochs=200,  # max number ( early stopping expected )
         verbose=1,
         callbacks=[
             ## Early Stop ##
-            tf.keras.callbacks.EarlyStopping(
-                monitor="val_loss",
-                min_delta=0.001,
-                patience=20,
-                verbose=0,
-                mode="auto",
-                baseline=None,
-                restore_best_weights=True,
-            ),
+            # tf.keras.callbacks.EarlyStopping(
+            #     monitor="val_loss",
+            #     min_delta=0.001,
+            #     patience=20,
+            #     verbose=0,
+            #     mode="auto",
+            #     baseline=None,
+            #     restore_best_weights=True,
+            # ),
             ## Save checkpoints ##
             tf.keras.callbacks.ModelCheckpoint(
                 Path.cwd() / "ckpt",  # file path/name to save the model
@@ -99,7 +113,17 @@ def main():
             
             for example, result in zip(batch["id"], results):               
                 f.write(f"{str(example.decode('utf-8'))},{np.argmax(result)}\n")
-            
+
+    print('predictions complete')
+    
+    print('test set results')
+    with tf.device("CPU"):
+        test = test.map(lambda ex : (ex["video"], tf.one_hot(ex["label"], depth=6)))
+    
+    test_metrics = model.evaluate(test)
+    print(f"loss={test_metrics[0]}\taccuracy={test_metrics[1]}")
+    
+    del model            
 
 if __name__ == "__main__":
     
