@@ -1,9 +1,9 @@
-## Hard crash
+## Hard crashes
 graphics froze, unable to switch to alternate session. required system reboot.
 
 ### 1 
 
-kern.log
+<details><summary>kern.log</summary>
 ```
 Jan 23 22:04:07 tiana kernel: [ 3053.894639] perf: interrupt took too long (2526 > 2500), lowering kernel.perf_event_max_sample_rate to 79000
 Jan 23 22:04:25 tiana kernel: [ 3072.743608] [drm:amdgpu_vm_handle_fault [amdgpu]] *ERROR* Can't handle page fault (-12)
@@ -276,9 +276,13 @@ Jan 23 22:04:36 tiana kernel: [ 3083.223787] [drm] Skip scheduling IBs!
 Jan 23 22:07:39 tiana kernel: [    0.000000] Linux version 5.10.0-11-amd64 (debian-kernel@lists.debian.org) (gcc-10 (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2) #1 SMP Debian 5.10.92-1 (2022-01-18)
 ```
 
+</details>
+
+
 ### 2
 
-kern.log
+<details><summary>kern.log</summary>
+
 ```
 Jan 24 00:41:36 tiana kernel: [ 6264.803554] [drm:amdgpu_dm_atomic_commit_tail [amdgpu]] *ERROR* Waiting for fences timed out!
 Jan 24 00:41:36 tiana kernel: [ 6269.923517] [drm:amdgpu_job_timedout [amdgpu]] *ERROR* ring page0 timeout, signaled seq=47312, emitted seq=47325
@@ -343,14 +347,16 @@ Jan 24 00:41:47 tiana kernel: [ 6280.332630] [drm] Skip scheduling IBs!
 Jan 24 00:41:47 tiana kernel: [ 6280.332634] [drm] Skip scheduling IBs!
 Jan 24 00:41:47 tiana kernel: [ 6280.332650] [drm] Skip scheduling IBs!
 Jan 24 00:54:22 tiana kernel: [    0.000000] Linux version 5.10.0-11-amd64 (debian-kernel@lists.debian.org) (gcc-10 (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2) #1 SMP Debian 5.10.92-1 (2022-01-18)
-
 ```
 
+</details>
 
-## soft crash
+## soft crashes
 
 ### 1
 tensorflow ended training session, terminal reported "Aborted". System still responsive.
+
+<details><summary>kern.log</summary>
 
 ```
 Jan 23 22:42:37 tiana kernel: [ 1750.417261] amdgpu 0000:2b:00.0: amdgpu: [mmhub0] retry page fault (src_id:0 ring:0 vmid:8 pasid:32776, for process python pid 39924 thread python pid 39924)
@@ -377,11 +383,8 @@ Jan 23 22:42:37 tiana kernel: [ 1750.417304] amdgpu 0000:2b:00.0: amdgpu: VM_L2_
 Jan 23 22:42:37 tiana kernel: [ 1750.417305] amdgpu 0000:2b:00.0: amdgpu:        Faulty UTCL2 client ID: MP0 (0x0)
 Jan 23 22:42:37 tiana kernel: [ 1750.417306] amdgpu 0000:2b:00.0: amdgpu:        MORE_FAULTS: 0x0
 Jan 23 22:42:37 tiana kernel: [ 1750.417307] amdgpu 0000:2b:00.0: amdgpu:        WALKER_ERROR: 0x0
-Jan 23 22:42:37 tiana kernel: [ 1750.417308] amdgpu 0000:2b:00.0: amdgpu:        PERMISSION_FAULTS: 0x0
-Jan 23 22:42:37 tiana kernel: [ 1750.417309] amdgpu 0000:2b:00.0: amdgpu:        MAPPING_ERROR: 0x0
-Jan 23 22:42:37 tiana kernel: [ 1750.417310] amdgpu 0000:2b:00.0: amdgpu:        RW: 0x0
-Jan 23 22:42:37 tiana kernel: [ 1750.417316] amdgpu 0000:2b:00.0: amdgpu: [mmhub0] retry page fault (src_id:0 ring:0 vmid:8 pasid:32776, for process python pid 39924 thread python pid 39924)
-Jan 23 22:42:37 tiana kernel: [ 1750.417317] amdgpu 0000:2b:00.0: amdgpu:   in page starting at address 0x00005fc42746b000 from client 18
+Jan 23 22:42:37 tiana kernel: [ 1750.417308] amd
+kern.loggpu 0000:2b:00.0: amdgpu:   in page starting at address 0x00005fc42746b000 from client 18
 Jan 23 22:42:37 tiana kernel: [ 1750.417318] amdgpu 0000:2b:00.0: amdgpu: VM_L2_PROTECTION_FAULT_STATUS:0x00000000
 Jan 23 22:42:37 tiana kernel: [ 1750.417319] amdgpu 0000:2b:00.0: amdgpu:        Faulty UTCL2 client ID: MP0 (0x0)
 Jan 23 22:42:37 tiana kernel: [ 1750.417319] amdgpu 0000:2b:00.0: amdgpu:        MORE_FAULTS: 0x0
@@ -407,8 +410,8 @@ Jan 23 22:42:37 tiana kernel: [ 1750.417345] amdgpu 0000:2b:00.0: amdgpu:       
 Jan 23 22:42:37 tiana kernel: [ 1750.417346] amdgpu 0000:2b:00.0: amdgpu:        PERMISSION_FAULTS: 0x0
 Jan 23 22:42:37 tiana kernel: [ 1750.417347] amdgpu 0000:2b:00.0: amdgpu:        MAPPING_ERROR: 0x0
 Jan 23 22:42:37 tiana kernel: [ 1750.417347] amdgpu 0000:2b:00.0: amdgpu:        RW: 0x0
-Jan 23 22:42:37 tiana kernel: [ 1750.417354] amdgpu 0000:2b:00.0: amdgpu: [mmhub0] retry page fault (src_id:0 ring:0 vmid:8 pasid:32776, for process python pid 39924 thread python pid 39924)
-Jan 23 22:42:37 tiana kernel: [ 1750.417354] amdgpu 0000:2b:00.0: amdgpu:   in page starting at address 0x00005fc42746e000 from client 18
+Jan 23 22:42:37 tiana kernel: [ 1750.417354] amd
+kern.loggpu 0000:2b:00.0: amdgpu:   in page starting at address 0x00005fc42746e000 from client 18
 Jan 23 22:42:37 tiana kernel: [ 1750.417355] amdgpu 0000:2b:00.0: amdgpu: VM_L2_PROTECTION_FAULT_STATUS:0x00000000
 Jan 23 22:42:37 tiana kernel: [ 1750.417356] amdgpu 0000:2b:00.0: amdgpu:        Faulty UTCL2 client ID: MP0 (0x0)
 Jan 23 22:42:37 tiana kernel: [ 1750.417357] amdgpu 0000:2b:00.0: amdgpu:        MORE_FAULTS: 0x0
@@ -417,6 +420,8 @@ Jan 23 22:42:37 tiana kernel: [ 1750.417358] amdgpu 0000:2b:00.0: amdgpu:       
 Jan 23 22:42:37 tiana kernel: [ 1750.417359] amdgpu 0000:2b:00.0: amdgpu:        MAPPING_ERROR: 0x0
 Jan 23 22:42:37 tiana kernel: [ 1750.417360] amdgpu 0000:2b:00.0: amdgpu:        RW: 0x0
 ```
+
+</details>
 
 ### 2
 
@@ -430,7 +435,8 @@ Epoch 37/200
 Aborted
 ```
 
-kern.log
+<details><summary>kern.log</summary>
+
 ```
 Jan 23 23:07:32 tiana kernel: [  625.063869] gmc_v9_0_process_interrupt: 3 callbacks suppressed
 Jan 23 23:07:32 tiana kernel: [  625.063875] amdgpu 0000:2b:00.0: amdgpu: [mmhub0] retry page fault (src_id:0 ring:0 vmid:8 pasid:32777, for process python pid 4381 thread python pid 4381)
@@ -453,8 +459,11 @@ Jan 23 23:07:32 tiana kernel: [  625.063953] amdgpu 0000:2b:00.0: amdgpu:       
 Jan 23 23:07:32 tiana kernel: [  625.063955] amdgpu 0000:2b:00.0: amdgpu:        RW: 0x0
 ```
 
+</details>
+
 <details>
   <summary>rocminfo</summary>
+
 ```
 ROCk module is loaded
 =====================    
@@ -601,10 +610,12 @@ Agent 2
       FBarrier Max Size:       32                                 
 *** Done ***    
 ```
+
 </details>
 
 
-clinfo
+<details><summary>clinfo</summary>
+
 ```
 Number of platforms                               1
   Platform Name                                   AMD Accelerated Parallel Processing
@@ -712,12 +723,7 @@ Number of devices                                 1
     Max 1D or 2D image array size                 8192 images
     Base address alignment for 2D image buffers   256 bytes
     Pitch alignment for 2D image buffers          256 pixels
-    Max 2D image size                             16384x16384 pixels
-    Max 3D image size                             16384x16384x8192 pixels
-    Max number of read image args                 128
-    Max number of write image args                8
-    Max number of read/write image args           64
-  Max number of pipe args                         16
+    Max 2D image size           Click to expand!                  16
   Max active pipe reservations                    16
   Max pipe packet size                            1703726280 (1.587GiB)
   Local memory type                               Local
@@ -776,3 +782,5 @@ ICD loader properties
   ICD loader Version                              2.2.14
   ICD loader Profile                              OpenCL 3.0
 ```
+
+</details>
