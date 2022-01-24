@@ -4,6 +4,7 @@ graphics froze, unable to switch to alternate session. required system reboot.
 ### 1 
 
 <details><summary>kern.log</summary>
+
 ```
 Jan 23 22:04:07 tiana kernel: [ 3053.894639] perf: interrupt took too long (2526 > 2500), lowering kernel.perf_event_max_sample_rate to 79000
 Jan 23 22:04:25 tiana kernel: [ 3072.743608] [drm:amdgpu_vm_handle_fault [amdgpu]] *ERROR* Can't handle page fault (-12)
@@ -276,6 +277,7 @@ Jan 23 22:04:36 tiana kernel: [ 3083.223787] [drm] Skip scheduling IBs!
 Jan 23 22:07:39 tiana kernel: [    0.000000] Linux version 5.10.0-11-amd64 (debian-kernel@lists.debian.org) (gcc-10 (Debian 10.2.1-6) 10.2.1 20210110, GNU ld (GNU Binutils for Debian) 2.35.2) #1 SMP Debian 5.10.92-1 (2022-01-18)
 ```
 
+
 </details>
 
 
@@ -460,6 +462,9 @@ Jan 23 23:07:32 tiana kernel: [  625.063955] amdgpu 0000:2b:00.0: amdgpu:       
 ```
 
 </details>
+
+
+## System info
 
 <details>
   <summary>rocminfo</summary>
